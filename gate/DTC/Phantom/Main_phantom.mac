@@ -1,0 +1,76 @@
+/gate/geometry/setMaterialDatabase GateMaterials.db
+
+/control/execute Module_phantom.mac
+
+/gate/systems/scanner_1/level1/attach TRACKER_Layer
+/gate/systems/scanner_2/level1/attach Layer
+# /gate/systems/phantom/level1/attach degrader
+
+/gate/ALPIDEEpi/attachCrystalSD
+/gate/TRACKER_ALPIDEEpi/attachCrystalSD
+
+#=================#
+# Physics			#
+#=================#
+
+/gate/geometry/setIonisationPotential Water 78 eV
+/gate/physics/addPhysicsList QBBC_EMZ
+#/gate/physics/SetMaxStepSizeInRegion world 1 mm
+#/gate/physics/ActivateStepLimiter proton
+
+/gate/actor/addActor PhaseSpaceActor PSA1
+/gate/actor/PSA1/save ../../../DTCToolkit/Data/MonteCarlo/DTC_PSA_proton_prephantom_spotx{spotx}_deg.root
+/gate/actor/PSA1/attachTo PSAvolume1
+/gate/actor/PSA1/enableEkine true
+/gate/actor/PSA1/enableParticleName false
+/gate/actor/PSA1/storeSecondaries false
+/gate/actor/PSA1/enableProductionProcess false
+/gate/actor/PSA1/enableProductionVolume false
+/gate/actor/PSA1/addFilter particleFilter
+/gate/actor/PSA1/particleFilter/addParticlePDG 2212
+
+/gate/actor/addActor PhaseSpaceActor PSA2
+/gate/actor/PSA2/save ../../../DTCToolkit/Data/MonteCarlo/DTC_PSA_proton_postphantom_spotx{spotx}_deg.root
+/gate/actor/PSA2/attachTo PSAvolume2
+/gate/actor/PSA2/enableEkine true
+/gate/actor/PSA2/enableParticleName false
+/gate/actor/PSA2/storeSecondaries false
+/gate/actor/PSA2/enableProductionProcess false
+/gate/actor/PSA2/enableProductionVolume false
+/gate/actor/PSA2/addFilter particleFilter
+/gate/actor/PSA2/particleFilter/addParticlePDG 2212
+
+/gate/run/initialize
+
+#=======================#
+# ADD PROTON BEAM	      #
+#=======================#
+
+/gate/source/addSource PBS PencilBeam
+/gate/source/PBS/setParticleType proton
+/gate/source/PBS/setEnergy 230 MeV
+/gate/source/PBS/setSigmaEnergy 0. MeV
+/gate/source/PBS/setPosition {spotx} {spoty} -500 mm
+/gate/source/PBS/setSigmaX 2 mm
+/gate/source/PBS/setSigmaY 2 mm
+/gate/source/PBS/setSigmaTheta 2.5 mrad
+/gate/source/PBS/setSigmaPhi 2.5 mrad
+/gate/source/PBS/setRotationAxis {axisx} {axisy} 0
+/gate/source/PBS/setRotationAngle {theta} rad
+/gate/source/PBS/setEllipseXThetaEmittance 3 mm*mrad
+/gate/source/PBS/setEllipseXThetaRotationNorm negative
+/gate/source/PBS/setEllipseYPhiEmittance 3 mm*mrad
+/gate/source/PBS/setEllipseYPhiRotationNorm negative
+
+/gate/output/root/enable
+/gate/output/root/setRootSinglesFlag 0
+/gate/output/root/setFileName ../../../DTCToolkit/Data/MonteCarlo/DTC_Final_{phantom}_rotation{rotation}deg_spotx{spotx}_spoty{spoty}
+
+#===============#
+# START BEAMS	#
+#===============#
+
+/gate/random/setEngineName MersenneTwister
+/gate/random/setEngineSeed auto
+/gate/application/setTotalNumberOfPrimaries 1000000 # 10k for small phantoms; 5k for head phantom
+/gate/application/start
